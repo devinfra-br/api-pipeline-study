@@ -1,0 +1,33 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "mocha --no-interactive --reporter spec './test/**/*.js'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "artillery": "^1.7.4",
+    "chai": "^5.1.2",
+    "eslint": "^9.13.0",
+    "eslint-define-config": "^2.1.0",
+    "esm": "^3.2.25",
+    "express": "^4.x",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "mocha": "^10.7.3",
+    "supertest": "^7.0.0"
+  },
+  "lint-staged": {
+    "*.js": "eslint"
+  }
+}
