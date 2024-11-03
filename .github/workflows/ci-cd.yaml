@@ -1,18 +1,87 @@
 name: Performance Test
+# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
 
 on:
+  pull_request:
+    branches:
+      - main # the workflow will run for the main branch.
+      - 'mona/octocat' # the workflow will run for the main branch and the mona/octocat branch.
+      - '!releases/**-alpha' # because the negative pattern !releases/**-alpha is used, the workflow will run for all branches except those that match the pattern.
+    branches-ignore:
+      - 'mona/octocat'
+      - 'releases/**-alpha'
+
   push:
     branches:
       - main
+      - 'releases/**'
+    paths:
+      - './gitops/docker/php/'
+
+    paths-ignore:
+      - 'docs/**'  
+      - '!sub-project/docs/**' # the !sub-project/docs/** pattern is used to exclude the sub-project/docs directory from the paths-ignore filter.  
+    tags:
+      - v2
+      - v1.*      
+
+  issues:
+    types: [opened, edited]
+      #- opened
+    
+  label:
+    types:
+      - created
+
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '30 5,17 * * *'      
+
+  workflow_call:
+    inputs:
+      username:
+        description: 'A username passed from the caller workflow'
+        default: 'john-doe'
+        required: false
+        type: string
 
 jobs: 
-  performance-test:
+
+  print-username:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Print the input name to STDOUT
+        run: echo The username is ${{ inputs.username }}
 
-      - name: Install dependencies
-        run: npm install
- 
+  test_schedule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Not on Monday or Wednesday
+        if: github.event.schedule != '30 5 * * 1,3'
+        run: echo "This job runs every day at 5:30 UTC except Monday and Wednesday."
+      - name: Every time
+        run: echo "This step will always run"
+
+  unit_tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x] 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Node.js dependencies
+        run: npm ci 
+
+      - name: Run tests
+        run: npm test
