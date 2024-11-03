@@ -123,6 +123,38 @@ jobs:
         with:
           sarif_file: results.sarif
 
+  tag_test_repo_api: 
+    runs-on: ubuntu-latest
+    needs: [lint_tests_api,unit_tests_api]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'        
+      - name: Minor version for each merge
+        id: taggerDryRun
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WITH_V: 'true'
+          DRY_RUN: 'true'
+
+      - name: echo new tag
+        run: |
+          echo "The next tag version will be: ${{ steps.taggerDryRun.outputs.new_tag }}"
+      - name: echo tag
+        run: |
+          echo "The current tag is: ${{ steps.taggerDryRun.outputs.tag }}"
+      - name: echo part
+        run: |
+          echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"     
+
+      - name: Minor version for each merge
+        id: taggerFinal
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          WITH_V: 'true'  
 
   security_test_api_container:
     runs-on: ubuntu-latest
@@ -148,7 +180,7 @@ jobs:
         continue-on-error: true 
 
   container_build_push_api:
-    name: Build container image
+    name: Build/Push container image
     runs-on: ubuntu-latest
     needs: [security_test_api_container,security_test_api_code]
     outputs:
@@ -172,7 +204,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            devinfrabr/api-item
+            ${{ github.repository }}
           tags: |
             type=sha,{{sha}},format=short
 
