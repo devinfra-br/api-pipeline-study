@@ -63,7 +63,7 @@ jobs:
     needs: [manual_test_pipe, schedule_test_pipe]
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x] 
+        node-version: [20.x, 22.x, 23.x] 
 
     steps:
       - name: Checkout code
@@ -86,7 +86,7 @@ jobs:
     needs: [manual_test_pipe, schedule_test_pipe]
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x] 
+        node-version: [20.x, 22.x, 23.x] 
 
     steps:
       - name: Checkout code
