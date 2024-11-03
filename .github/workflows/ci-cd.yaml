@@ -77,7 +77,6 @@ jobs:
 
       - name: Install Node.js dependencies
         run: yarn install
-      - run: npm audit fix --force
 
       - name: Run tests
         run: npm test
