@@ -5,7 +5,6 @@ on:
   pull_request:
     branches:
       - main # the workflow will run for the main branch.
-      - 'mona/octocat' # the workflow will run for the main branch and the mona/octocat branch.
       - '!releases/**-alpha' # because the negative pattern !releases/**-alpha is used, the workflow will run for all branches except those that match the pattern.
     branches-ignore:
       - 'mona/octocat'
