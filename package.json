@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "test": "mocha --no-interactive --reporter spec './test/**/*.js'"
+    "test": "mocha --no-interactive --reporter spec './test/**/*.js' --exit"
   },
   "keywords": [],
   "author": "",
