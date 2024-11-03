@@ -1,8 +1,8 @@
 config:
-  target: 'http://localhost:3000' # Altere para o URL da sua API
+  target: 'http://localhost:3000'
   phases:
-    - duration: 60 # Duração do teste em segundos
-      arrivalRate: 5 # Quantas requisições por segundo
+    - duration: 60
+      arrivalRate: 5 
   http:
     request:
       headers:
@@ -11,7 +11,7 @@ config:
 scenarios:
   - flow:
       - get:
-          url: "/api/items" # Altere para o endpoint que deseja testar
+          url: "/api/items" 
       - post:
           url: "/api/items"
           json:
