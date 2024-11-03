@@ -42,7 +42,7 @@ on:
 
 jobs: 
 
-  manual_print_username:
+  manual_test_pipe:
     runs-on: ubuntu-latest
 
     steps:
@@ -63,7 +63,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x] 
+        node-version: [20.x, 22.x] 
 
     steps:
       - name: Checkout code
