@@ -40,6 +40,10 @@ on:
         required: false
         type: string
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs: 
 
   manual_test_pipe:
@@ -166,12 +170,12 @@ jobs:
 
       - name: Build images 
         run: |
-          docker build -t devinfrabr/api-item:${{ github.sha }} .
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:latest .
    
       - name: Security scan
         uses: docker://aquasec/trivy:0.19.2
         with:
-          args: --exit-code 1 --severity HIGH,CRITICAL devinfrabr/api-item:${{ github.sha }}
+          args: --exit-code 1 --severity HIGH,CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:latest
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
@@ -195,7 +199,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.actor }}/api-item
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -204,14 +208,14 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.repository }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           tags: |
             type=sha,{{sha}},format=short
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
 
@@ -232,3 +236,10 @@ jobs:
           labels: ${{ steps.metasha.outputs.labels }}
           tags: |
             ${{ steps.metasha.outputs.tags }}
+           
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.docker_build_sha.outputs.digest }}
+          push-to-registry: true
