@@ -76,8 +76,8 @@ jobs:
           cache: 'npm'
 
       - name: Install Node.js dependencies
-        run: npm install --package-lock-only
-      - run: npm ci 
+        run: yarn install
+      - run: npm audit fix --force
 
       - name: Run tests
         run: npm test
