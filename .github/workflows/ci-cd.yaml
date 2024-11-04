@@ -273,7 +273,8 @@ jobs:
         run: echo "::set-output name=tags::${{ steps.metalatest.outputs.tags }}"    
 
       - name: Push package to GitHub Container Registry
-        run: docker push ${{ steps.metalatest.outputs.tags }}
+        run: docker build -t ${{ steps.metalatest.outputs.tags }} .
+      - run: docker push ${{ steps.metalatest.outputs.tags }}
 
       - name: Generate artifact attestation sha
         uses: actions/attest-build-provenance@v1
