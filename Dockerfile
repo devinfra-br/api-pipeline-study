@@ -1,10 +1,10 @@
-FROM node:23.0.0
+FROM node:lts-alpine3.20
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install
+RUN apk update && apk upgrade && npm install
 
 COPY . .
 
