@@ -1,5 +1,6 @@
-
 # Item Management API
+
+[![Pipeline API Item CI/CD](https://github.com/devinfra-br/api-pipeline-study/actions/workflows/ci-cd.yaml/badge.svg)](https://github.com/devinfra-br/api-pipeline-study/actions/workflows/ci-cd.yaml)
 
 This is a simple RESTful API built with Node.js and Express to manage items with CRUD operations (Create, Read, Update, Delete). The API uses `morgan` for structured logging of incoming requests.
 
@@ -81,3 +82,5 @@ This API uses `morgan` to log all incoming requests in a structured JSON format.
 
 ## License
 This project is open-source and free to use under the MIT license.
+
+
