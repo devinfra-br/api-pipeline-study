@@ -1,4 +1,4 @@
-name: Performance Test
+name: Pipeline API Item CI/CD
 # Arquivo de configuração do GitHub Actions para executar testes de performance
 
 # Ações que irão disparar o workflow
@@ -6,21 +6,21 @@ on:
   pull_request:
     # Ignorar branches específicas
     branches-ignore:
-      - 'mona/octocat'
+      - "mona/octocat"
     # Disparar workflow somente se arquivos dentro deste caminho forem modificados
     paths:
-      - './gitops/docker/php/'
+      - "./gitops/docker/php/"
 
   push:
     # Disparar workflow em pushes nas branches especificadas
     branches:
       - main
-      - 'releases/**'
+      - "releases/**"
     # Ignorar modificações em caminhos específicos
     paths-ignore:
-      - 'docs/**'  
+      - "docs/**"
       # Exceção para subdiretórios dentro de docs
-      - '!sub-project/docs/**'
+      - "!sub-project/docs/**"
     # Tags que disparam o workflow
     tags:
       - v2
@@ -37,14 +37,14 @@ on:
 
   schedule:
     # Agendar execução do workflow com base em cron (diariamente às 5:30 e 17:30 UTC)
-    - cron: '30 5,17 * * *'
+    - cron: "30 5,17 * * *"
 
   workflow_call:
     # Definir entradas para execução deste workflow a partir de outro
     inputs:
       username:
-        description: 'Nome de usuário passado pelo workflow que chama'
-        default: 'john-doe'
+        description: "Nome de usuário passado pelo workflow que chama"
+        default: "john-doe"
         required: false
         type: string
 
@@ -53,9 +53,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
-
-jobs: 
-
+jobs:
   manual_test_pipe:
     runs-on: ubuntu-latest
 
@@ -77,7 +75,7 @@ jobs:
     needs: [manual_test_pipe, schedule_test_pipe]
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 23.x] 
+        node-version: [20.x, 22.x, 23.x]
 
     steps:
       - name: Checkout code
@@ -87,7 +85,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Node.js dependencies
         run: yarn install
@@ -100,7 +98,7 @@ jobs:
     needs: [manual_test_pipe, schedule_test_pipe]
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 23.x] 
+        node-version: [20.x, 22.x, 23.x]
 
     steps:
       - name: Checkout code
@@ -110,17 +108,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install Node.js dependencies
         run: yarn install
 
       - name: Run tests
-        run: yarn lint        
+        run: yarn lint
 
   security_test_api_code:
     runs-on: ubuntu-latest
-    needs: [lint_tests_api,unit_tests_api]
+    needs: [lint_tests_api, unit_tests_api]
 
     steps:
       - name: Checkout code
@@ -130,56 +128,56 @@ jobs:
         id: njsscan
         uses: ajinabraham/njsscan-action@master
         with:
-          args: '. --sarif --output results.sarif || true'
+          args: ". --sarif --output results.sarif || true"
 
       - name: Upload njsscan report
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: results.sarif 
+          sarif_file: results.sarif
 
   security_test_api_container:
     runs-on: ubuntu-latest
-    needs: [lint_tests_api,unit_tests_api]
+    needs: [lint_tests_api, unit_tests_api]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build images 
+      - name: Build images
         run: |
           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }} .
-   
+
       - name: Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}'
+          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}"
           #scan-type: 'fs'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-        continue-on-error: true 
+          format: "sarif"
+          output: "trivy-results.sarif"
+          severity: "CRITICAL,HIGH"
+        continue-on-error: true
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         # if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
 
-  tag_test_repo_api: 
+  tag_test_repo_api:
     runs-on: ubuntu-latest
-    needs: [lint_tests_api,unit_tests_api]
+    needs: [lint_tests_api, unit_tests_api]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: '0'        
+          fetch-depth: "0"
       - name: Minor version for each merge
         id: taggerDryRun
         uses: anothrNick/github-tag-action@1.36.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          WITH_V: 'true'
-          DRY_RUN: 'true'
+          WITH_V: "true"
+          DRY_RUN: "true"
 
       - name: echo new tag
         run: |
@@ -189,14 +187,14 @@ jobs:
           echo "The current tag is: ${{ steps.taggerDryRun.outputs.tag }}"
       - name: echo part
         run: |
-          echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"     
+          echo "The version increment was: ${{ steps.taggerDryRun.outputs.part }}"
 
       - name: Minor version for each merge
         id: taggerFinal
         uses: anothrNick/github-tag-action@1.36.0
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          WITH_V: 'true' 
+          WITH_V: "true"
 
   container_build_push_api:
     name: container_build_push_api
@@ -205,8 +203,9 @@ jobs:
       id-token: write
       packages: write
       contents: read
-      attestations: write    
-    needs: [security_test_api_container,security_test_api_code,tag_test_repo_api]
+      attestations: write
+    needs:
+      [security_test_api_container, security_test_api_code, tag_test_repo_api]
     outputs:
       tag: ${{ steps.metasha.outputs.tags }}
 
@@ -250,7 +249,7 @@ jobs:
         id: docker_build_sha
         with:
           context: .
-          file: Dockerfile 
+          file: Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           labels: ${{ steps.metasha.outputs.labels }}
@@ -262,15 +261,15 @@ jobs:
         id: docker_build_latest
         with:
           context: .
-          file: Dockerfile 
+          file: Dockerfile
           push: true
           labels: ${{ steps.metalatest.outputs.labels }}
           tags: |
-            ${{ steps.metalatest.outputs.tags }}           
+            ${{ steps.metalatest.outputs.tags }}
 
       - name: Package git generated tags
         id: package
-        run: echo "::set-output name=tags::${{ steps.metalatest.outputs.tags }}"    
+        run: echo "::set-output name=tags::${{ steps.metalatest.outputs.tags }}"
 
       - name: Push package to GitHub Container Registry
         run: docker build -t ${{ steps.metalatest.outputs.tags }} .
@@ -288,4 +287,4 @@ jobs:
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.docker_build_latest.outputs.digest }}
-          push-to-registry: true          
+          push-to-registry: true
