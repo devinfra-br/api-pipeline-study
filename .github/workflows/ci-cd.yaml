@@ -1,46 +1,55 @@
 name: Performance Test
-# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions
+# Arquivo de configuração do GitHub Actions para executar testes de performance
 
+# Ações que irão disparar o workflow
 on:
   pull_request:
+    # Ignorar branches específicas
     branches-ignore:
       - 'mona/octocat'
+    # Disparar workflow somente se arquivos dentro deste caminho forem modificados
     paths:
-      - './gitops/docker/php/'      
+      - './gitops/docker/php/'
 
   push:
+    # Disparar workflow em pushes nas branches especificadas
     branches:
       - main
       - 'releases/**'
-
+    # Ignorar modificações em caminhos específicos
     paths-ignore:
       - 'docs/**'  
-      - '!sub-project/docs/**' # the !sub-project/docs/** pattern is used to exclude the sub-project/docs directory from the paths-ignore filter.  
+      # Exceção para subdiretórios dentro de docs
+      - '!sub-project/docs/**'
+    # Tags que disparam o workflow
     tags:
       - v2
-      - v1.*      
+      - v1.*
 
   issues:
+    # Disparar workflow em determinados tipos de eventos de issues
     types: [opened, edited]
-      #- opened
-    
+
   label:
+    # Disparar workflow ao criar um label
     types:
       - created
 
   schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '30 5,17 * * *'      
+    # Agendar execução do workflow com base em cron (diariamente às 5:30 e 17:30 UTC)
+    - cron: '30 5,17 * * *'
 
   workflow_call:
+    # Definir entradas para execução deste workflow a partir de outro
     inputs:
       username:
-        description: 'A username passed from the caller workflow'
+        description: 'Nome de usuário passado pelo workflow que chama'
         default: 'john-doe'
         required: false
         type: string
 
 env:
+  # Configurações de ambiente
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -173,16 +182,23 @@ jobs:
         run: |
           docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:latest .
    
-      - name: Security scan
-        uses: docker://aquasec/trivy:0.19.2
+      - name: Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          args: --exit-code 1 --severity HIGH,CRITICAL ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:latest
-          format: 'table'
-          exit-code: '0'
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:latest'
+          format: 'sarif'
+          exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
-          #severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL,HIGH'
+          output: 'trivy-results.sarif'
         continue-on-error: true 
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
 
   container_build_push_api:
     name: Build/Push container image
