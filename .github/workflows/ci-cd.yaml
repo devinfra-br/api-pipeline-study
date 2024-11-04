@@ -155,10 +155,6 @@ jobs:
           image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ github.sha }}'
           #scan-type: 'fs'
           format: 'sarif'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
           output: 'trivy-results.sarif'
         continue-on-error: true 
 
