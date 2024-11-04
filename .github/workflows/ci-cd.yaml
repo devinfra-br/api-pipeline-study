@@ -156,6 +156,7 @@ jobs:
           #scan-type: 'fs'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
         continue-on-error: true 
 
       - name: Upload Trivy scan results to GitHub Security tab
@@ -229,7 +230,7 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           tags: |
-            ttype=sha,prefix=v-{{sha}},format=short
+            type=sha,prefix=v-{{sha}},format=short
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
