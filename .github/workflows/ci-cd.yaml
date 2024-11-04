@@ -44,6 +44,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+
 jobs: 
 
   manual_test_pipe:
@@ -186,7 +187,12 @@ jobs:
   container_build_push_api:
     name: Build/Push container image
     runs-on: ubuntu-latest
-    needs: [security_test_api_container,security_test_api_code]
+    permissions:
+      id-token: write
+      packages: write
+      contents: read
+      attestations: write    
+    needs: [security_test_api_container,security_test_api_code,tag_test_repo_api]
     outputs:
       tag: ${{ steps.metasha.outputs.tags }}
 
