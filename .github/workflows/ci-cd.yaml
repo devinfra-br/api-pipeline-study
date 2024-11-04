@@ -266,7 +266,14 @@ jobs:
           push: true
           labels: ${{ steps.metalatest.outputs.labels }}
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}/${{ steps.metasha.outputs.tags }}           
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}/${{ steps.metalatest.outputs.tags }}           
+
+      - name: Package git generated tags
+        id: package
+        run: echo "::set-output name=tags::${{ steps.metalatest.outputs.tags }}"    
+
+      - name: Push package to GitHub Container Registry
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}:${{ steps.metalatest.outputs.tags }}
 
       - name: Generate artifact attestation sha
         uses: actions/attest-build-provenance@v1
